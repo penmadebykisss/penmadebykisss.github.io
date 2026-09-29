@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ИИ-помощник для WB и amoCRM под ключ</title>
+<meta name="description" content="Подключаю Claude и другие ИИ-ассистенты к Wildberries, amoCRM, счетам и зарплате. Ассистент отвечает на вопросы по живым данным вашего бизнеса. Настройка за 1–3 дня.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F4F7FB;
+    --ink: #1A2233;
+    --muted: #55607A;
+    --teal: #0F6B6B;
+    --teal-ink: #FFFFFF;
+    --bubble: #DDE8F4;
+    --panel: #FFFFFF;
+    --line: #C9D4E3;
+    --amber: #B87718;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #121826; --ink: #E6ECF5; --muted: #9AA7BD; --teal: #3FB5B0; --teal-ink: #0B1B1B;
+      --bubble: #1F2B40; --panel: #182133; --line: #2C3950; --amber: #F0B456;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #121826; --ink: #E6ECF5; --muted: #9AA7BD; --teal: #3FB5B0; --teal-ink: #0B1B1B;
+    --bubble: #1F2B40; --panel: #182133; --line: #2C3950; --amber: #F0B456;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 400 17px/1.6 Onest, system-ui, sans-serif;
+  }
+  a { color: var(--teal); }
+  :focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; border-radius: 4px; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+  h1, h2 { font-family: Unbounded, Onest, sans-serif; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+  h1 { font-size: clamp(28px, 3.9vw, 50px); line-height: 1.1; }
+  h2 { font-size: clamp(24px, 3.4vw, 36px); line-height: 1.15; }
+  h3 { font: 600 20px/1.3 Onest, sans-serif; margin: 0 0 6px; }
+  p { margin: 0 0 12px; max-width: 64ch; }
+
+  header.top { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; gap: 12px; }
+  .brand { font-family: Unbounded, sans-serif; font-weight: 500; font-size: 16px; text-decoration: none; color: var(--ink); }
+  .tg { font-weight: 600; text-decoration: none; }
+
+  /* Hero: заголовок слева, живой диалог справа */
+  .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; padding: 40px 0 72px; }
+  .hero p.lead { font-size: 19px; color: var(--muted); margin-top: 20px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .btn {
+    display: inline-block; background: var(--teal); color: var(--teal-ink); font: 600 17px/1 Onest, sans-serif;
+    padding: 16px 22px; border-radius: 10px; text-decoration: none; border: 0; cursor: pointer;
+  }
+  .btn.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--line); }
+
+  .chat { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 20px; min-height: 380px; }
+  .chat .who { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  .q { background: var(--teal); color: var(--teal-ink); padding: 12px 16px; border-radius: 14px 14px 4px 14px; margin-left: auto; max-width: 88%; width: fit-content; min-height: 50px; }
+  .a { margin-top: 18px; opacity: 0; transform: translateY(6px); transition: opacity .5s ease, transform .5s ease; }
+  .a.show { opacity: 1; transform: none; }
+  .a .bubble { background: var(--bubble); padding: 14px 16px; border-radius: 14px 14px 14px 4px; }
+  .deal { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .deal:last-of-type { border-bottom: 0; }
+  .deal b { font-weight: 600; }
+  .deal .sum { color: var(--amber); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .deal .why { color: var(--muted); font-size: 14px; grid-column: 1 / -1; }
+  .total { margin-top: 10px; font-size: 15px; }
+  .total .sum { color: var(--amber); font-weight: 600; }
+
+  section { padding: 64px 0; border-top: 1px solid var(--line); }
+  section > .wrap > p.sub { color: var(--muted); margin-top: 12px; }
+
+  /* Направления: строки, не карточки */
+  .offer { display: grid; grid-template-columns: 280px 1fr; gap: 32px; padding: 32px 0; border-bottom: 1px solid var(--line); }
+  .offer:last-child { border-bottom: 0; }
+  .offer .who-for { color: var(--muted); font-size: 15px; }
+  .offer .price { margin-top: 10px; font-weight: 600; }
+  .asks { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .asks li { background: var(--panel); border-left: 3px solid var(--teal); padding: 10px 14px; border-radius: 0 10px 10px 0; }
+
+  ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 28px 0 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  ol.steps li { counter-increment: s; }
+  ol.steps li::before { content: counter(s); font: 700 40px/1 Unbounded, sans-serif; color: var(--teal); display: block; margin-bottom: 10px; }
+
+  .facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 40px; margin-top: 24px; }
+  .facts p { margin: 0; }
+
+  form { display: grid; gap: 14px; max-width: 620px; margin-top: 28px; }
+  label { font-weight: 600; font-size: 15px; display: grid; gap: 6px; }
+  input, select, textarea {
+    font: 400 16px/1.4 Onest, sans-serif; color: var(--ink); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; width: 100%;
+  }
+  textarea { min-height: 110px; resize: vertical; }
+  .hint { color: var(--muted); font-size: 14px; margin: 0; }
+  .sent { display: none; background: var(--bubble); border-radius: 12px; padding: 16px; }
+  .sent.show { display: block; }
+  .sent pre { white-space: pre-wrap; font: 400 15px/1.5 Onest, sans-serif; margin: 10px 0; }
+
+  footer { padding: 36px 0 48px; color: var(--muted); font-size: 15px; border-top: 1px solid var(--line); }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; gap: 32px; padding-top: 16px; }
+    .offer { grid-template-columns: 1fr; gap: 14px; }
+    ol.steps, .facts { grid-template-columns: 1fr; }
+    .chat { min-height: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .a { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#">ИИ-помощник под ключ</a>
+    <a class="tg" href="https://t.me/penmadebykisss">Telegram: @penmadebykisss</a>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1>Спросите у ИИ про свой бизнес — и получите ответ по живым данным</h1>
+      <p class="lead">Подключаю Claude и других ассистентов к Wildberries, amoCRM, ФНС, счетам и расчёту зарплаты. Вы пишете вопрос обычным текстом, ассистент сам собирает цифры и отвечает.</p>
+      <div class="actions">
+        <a class="btn" href="#request">Оставить заявку</a>
+        <a class="btn ghost" href="#what">Что умеет</a>
+      </div>
+    </div>
+
+    <div class="chat" aria-label="Пример диалога с ассистентом, подключённым к amoCRM">
+      <div class="who">Руководитель отдела продаж</div>
+      <div class="q" id="q" data-text="Какие сделки зависли больше недели?">Какие сделки зависли больше недели?</div>
+      <div class="a" id="a">
+        <div class="who">Ассистент · данные из amoCRM</div>
+        <div class="bubble">
+          <div class="deal"><b>Сайт для сети кафе</b><span class="sum">340 000 ₽</span><span class="why">Переговоры, без движения 12 дней, задач нет</span></div>
+          <div class="deal"><b>CRM-интеграция, ООО «Вектор»</b><span class="sum">150 000 ₽</span><span class="why">КП отправлено, задача просрочена на 4 дня</span></div>
+          <div class="deal"><b>Лендинг для клиники</b><span class="sum">90 000 ₽</span><span class="why">Первичный контакт, без движения 9 дней</span></div>
+          <div class="total">Под риском <span class="sum">580 000 ₽</span>. Предлагаю поставить Анне задачу перезвонить по первой сделке сегодня.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="what">
+  <div class="wrap">
+    <h2>Что можно подключить</h2>
+    <p class="sub">Основа — мои открытые серверы на GitHub. Я устанавливаю, настраиваю под ваши данные и показываю, как пользоваться.</p>
+
+    <div class="offer">
+      <div>
+        <h3>Wildberries</h3>
+        <div class="who-for">Для селлеров и менеджеров маркетплейсов</div>
+        <div class="price">от 3 000 ₽</div>
+      </div>
+      <ul class="asks">
+        <li>Сравни пять товаров конкурентов по цене, рейтингу и отзывам</li>
+        <li>За что ругают этот артикул? Выпиши частые жалобы</li>
+        <li>Проверь мою карточку против топ-3 и скажи, что улучшить</li>
+        <li>Какие мои товары заканчиваются на складах?</li>
+      </ul>
+    </div>
+
+    <div class="offer">
+      <div>
+        <h3>amoCRM и Kommo</h3>
+        <div class="who-for">Для руководителей отделов продаж и владельцев</div>
+        <div class="price">от 7 000 ₽</div>
+      </div>
+      <ul class="asks">
+        <li>Как идут продажи в этом месяце? Кто из менеджеров лучше закрывает?</li>
+        <li>Что у менеджеров просрочено сегодня?</li>
+        <li>Найди клиента по телефону и подготовь меня к звонку</li>
+        <li>Создай сделку на 90 000 и поставь задачу перезвонить завтра в 11</li>
+      </ul>
+    </div>
+
+    <div class="offer">
+      <div>
+        <h3>Документы и зарплата</h3>
+        <div class="who-for">Для ИП, фрилансеров и небольших компаний</div>
+        <div class="price">от 2 500 ₽</div>
+      </div>
+      <ul class="asks">
+        <li>Выстави счёт ООО «Ромашка» на 45 000 без НДС — с QR-кодом для оплаты</li>
+        <li>Проверь контрагента по ИНН перед договором</li>
+        <li>Кандидат хочет 150 000 на руки — какой оклад и во сколько он обойдётся?</li>
+        <li>Посчитай отпускные и больничный по правилам 2026 года</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Как проходит работа</h2>
+    <ol class="steps">
+      <li><h3>Созвон на 20 минут</h3><p>Разбираемся, какие вопросы вы хотите задавать ассистенту и откуда брать данные.</p></li>
+      <li><h3>Настройка за 1–3 дня</h3><p>Подключаю ассистента к вашим системам и проверяю на ваших реальных данных.</p></li>
+      <li><h3>Передача и поддержка</h3><p>Показываю, как пользоваться, оставляю шпаргалку запросов и отвечаю на вопросы.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Что важно знать</h2>
+    <div class="facts">
+      <p><b>Изменения — только с вашего согласия.</b> Прежде чем создать сделку или ответить на отзыв, ассистент показывает, что именно сделает.</p>
+      <p><b>Данные остаются у вас.</b> Счета и расчёты делаются на вашем компьютере, доступы к CRM и WB хранятся в ваших настройках.</p>
+      <p><b>Открытый код.</b> Все серверы опубликованы на <a href="https://github.com/penmadebykisss">GitHub</a> и в каталоге Glama — можно посмотреть, что они делают.</p>
+      <p><b>Сначала задача, потом оплата.</b> Цена фиксируется после созвона, до начала работы.</p>
+    </div>
+  </div>
+</section>
+
+<section id="request">
+  <div class="wrap">
+    <h2>Оставить заявку</h2>
+    <p class="sub">Заполните форму — заявка откроется в Telegram, останется нажать «Отправить». Или напишите сразу: <a href="https://t.me/penmadebykisss">@penmadebykisss</a>.</p>
+    <form id="form" novalidate>
+      <label>Как к вам обращаться<input name="name" autocomplete="name" required></label>
+      <label>Что подключить
+        <select name="what">
+          <option>Wildberries</option>
+          <option>amoCRM / Kommo</option>
+          <option>Счета, акты, проверка контрагентов</option>
+          <option>Расчёт зарплаты</option>
+          <option>Другое</option>
+        </select>
+      </label>
+      <label>Задача в двух словах<textarea name="task" placeholder="Например: хочу каждое утро видеть зависшие сделки по трём менеджерам"></textarea></label>
+      <p class="hint">Данные формы никуда не отправляются с этой страницы: текст заявки копируется, и открывается чат в Telegram.</p>
+      <div><button class="btn" type="submit">Открыть заявку в Telegram</button></div>
+      <div class="sent" id="sent" role="status">
+        Текст заявки скопирован — вставьте его в чат, который открылся в новой вкладке. Если чат не открылся, напишите <a href="https://t.me/penmadebykisss">@penmadebykisss</a>.
+        <pre id="sent-text"></pre>
+      </div>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Открытые MCP-серверы: <a href="https://github.com/penmadebykisss">github.com/penmadebykisss</a>. Связь: <a href="https://t.me/penmadebykisss">Telegram @penmadebykisss</a>.</div>
+</footer>
+
+<script>
+  // Один момент движения: вопрос печатается, затем появляется ответ
+  (function () {
+    const q = document.getElementById('q'), a = document.getElementById('a');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { a.classList.add('show'); return; }
+    const text = q.dataset.text; q.textContent = '';
+    let i = 0;
+    const tick = () => {
+      q.textContent = text.slice(0, ++i);
+      if (i < text.length) setTimeout(tick, 38); else setTimeout(() => a.classList.add('show'), 450);
+    };
+    setTimeout(tick, 500);
+  })();
+
+  document.getElementById('form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const name = (f.get('name') || '').trim();
+    if (!name) { e.target.name.focus(); return; }
+    const msg = `Здравствуйте! Заявка с сайта.\nИмя: ${name}\nЧто подключить: ${f.get('what')}\nЗадача: ${(f.get('task') || '—').trim()}`;
+    try { await navigator.clipboard.writeText(msg); } catch (err) { /* буфер недоступен — текст виден ниже */ }
+    document.getElementById('sent-text').textContent = msg;
+    document.getElementById('sent').classList.add('show');
+    window.open('https://t.me/penmadebykisss', '_blank', 'noopener');
+  });
+</script>
+</body>
+</html>
